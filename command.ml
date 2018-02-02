@@ -1,3 +1,7 @@
+(*
+**  Command - command execution (check Menhir files for the parser)
+*)
+
 open Debug
 open Cell
 open Sheet
@@ -6,7 +10,10 @@ open Sheet
  - La modification d'une cellule avec une nouvelle formule,
  - l'affichage d'une cellule,
  - l'affichage de toute la feuille *)
-type comm = Upd of cellname * form | Show of cellname | ShowAll
+type comm =
+	| Upd of cellname * form
+	| Show of cellname
+	| ShowAll
 
 
 (************ affichage **************)
@@ -32,7 +39,7 @@ let show_comm c =
 let run_command c = match c with
   | Show cn ->
      begin
-       recompute_sheet();
+       sheet_recompute ();
        let co = cellname_to_coord cn in
        eval_p_debug (fun () ->
            "Showing cell "
@@ -44,8 +51,8 @@ let run_command c = match c with
   | ShowAll ->
      begin
        eval_p_debug (fun () -> "Show All\n");
-       recompute_sheet();
-       show_sheet ()
+       sheet_recompute ();
+       sheet_show ()
      end
   | Upd(cn,f) ->
      let co = cellname_to_coord cn in
