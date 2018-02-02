@@ -1,12 +1,15 @@
-(* mettre à true si on veut davantage d'affichage (pour debugger) *)
+(*
+**  Debug - conditional debugging facilities
+*)
+
+(* Debug flag - set to `true` to enable detailed debugging *)
 let blabla = false
 
+(* p_debug - Conditionally debug a string
+   @arg  s      String to debug (printed only if blabla = true) [string] *)
 let p_debug s = if blabla then print_string s else ()
 
-(* Lazy debugging. This gives the compiler the opportunity to optimise away
- * debugging statements. *)
-(* Ne perdez pas trop de temps a comprendre cette fonction, allez
-   regarder son utilisation (dans command.ml) lorsque vous en aurez
-   besoin. *)
+(* eval_p_debug - Lazy conditional debugging
+   @arg  f      A string generator to call if blabla = true [unit -> string] *)
 let eval_p_debug f =
-  if blabla then print_string (f ()) else ()
+	if blabla then print_string (f ()) else ()
