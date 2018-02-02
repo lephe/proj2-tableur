@@ -1,8 +1,10 @@
-all: 
+#! /usr/bin/make -f
+
+all:
 	ocamlbuild -yaccflag -v -lib unix main.native #on dit de fabriquer main.native
 
-byte: 
+byte:
 	ocamlbuild -yaccflag -v main.byte
 
-clean: 
+clean:
 	ocamlbuild -clean

@@ -66,23 +66,28 @@ let invalidate_sheet () =
   let f i j = update_cell_value (i,j) None in
   sheet_iter f
 
-
-(* on marque qu'on doit tout recalculer en remplissant le tableau de "None" *)
-(* a faire : mettre tout le monde à none *)
-let invalidate_sheet () = 
-  print_string "invalidate_sheet : la fonction doit encore etre implementee\n"
-
-
-(* à faire : le cœur du programme *)    
+(* à faire : le cœur du programme *)
 let rec eval_form fo = match fo with
-  | Cst n -> 27.19
-  | Cell (p,q) -> 27.19
-  | Op(o,fs) -> 27.19
+  | Cst n -> n
+  | Cell (p,q) -> eval_cell p q
+  | Op(o,fs) -> begin
+    let vs = List.map eval_form fs in match o with
+    | S -> List.fold_left ( +. ) 0. vs
+    | M -> List.fold_left ( *. ) 1. vs
+    | A -> List.fold_left ( +. ) 0. vs /. float_of_int (List.length vs)
+    end
 
-(* ici un "and", car eval_formula et eval_cell sont a priori 
+(* ici un "and", car eval_formula et eval_cell sont a priori
    deux fonctions mutuellement récursives *)
 and eval_cell i j =
-  19.27
+  let c = read_cell (i, j) in
+  match c.value with
+  | None -> begin
+      let v = eval_form c.formula in
+      update_cell_value (i, j) (Some v);
+      v
+    end
+  | Some v -> v
 
 let recompute_sheet () =
   invalidate_sheet ();
