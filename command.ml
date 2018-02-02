@@ -4,7 +4,7 @@ open Sheet
 
 (* commandes: ce que l'utilisateur peut saisir dans un fichier.
  - La modification d'une cellule avec une nouvelle formule,
- - l'affichage d'une cellule, 
+ - l'affichage d'une cellule,
  - l'affichage de toute la feuille *)
 type comm = Upd of cellname * form | Show of cellname | ShowAll
 
