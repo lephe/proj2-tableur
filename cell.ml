@@ -21,9 +21,13 @@ let coord_to_cellname co =
   else
     (String.make 1 (char_of_int (column_nbr + 65)), fst co +1)
 
-
-(* operations que l'on peut utiliser dans les formules *)
-type oper = S | M | A (* sum, multiply, average *)
+(* Operators (functions) available in formulae *)
+type oper =
+	| Operator_Sum		(* Sum of all arguments [default 0] *)
+	| Operator_Prod		(* Product of all arguments [default 1] *)
+	| Operator_Avg		(* Numerical mean [default undefined] *)
+	| Operator_Max		(* Maximal element [default undefined] *)
+	| Operator_Min		(* Minimal element [default undefined] *)
 
 (* formules : une valeur, la même valeur qu'une autre cellule, une opération et
  * ses arguments *)
@@ -49,9 +53,11 @@ let cell_val2string c = match c.value with
   | Some n -> string_of_float n
 
 let oper2string = function
-  | S -> "SUM"
-  | M -> "MULT"
-  | A -> "AVERAGE"
+  | Operator_Sum  -> "SUM"
+  | Operator_Prod -> "MULT"
+  | Operator_Avg  -> "AVERAGE"
+  | Operator_Max  -> "MAX"
+  | Operator_Min  -> "MIN"
 
 let ps = print_string
 

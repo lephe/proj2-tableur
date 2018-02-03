@@ -6,58 +6,61 @@ open Debug
 open Cell
 open Sheet
 
-(* commandes: ce que l'utilisateur peut saisir dans un fichier.
- - La modification d'une cellule avec une nouvelle formule,
- - l'affichage d'une cellule,
- - l'affichage de toute la feuille *)
+(* comm - available commands for the spreadsheet scripts *)
 type comm =
-	| Upd of cellname * form
-	| Show of cellname
-	| ShowAll
+	| Upd of cellname * form		(* Update a cell's formula *)
+	| Show of cellname				(* Show a cell's value *)
+	| ShowAll						(* Show all cells *)
 
 
-(************ affichage **************)
-let show_comm c =
-  match c with
-  | Upd (c,f) ->
-     begin
-       ps (cell_name2string c);
-       ps"=";
-       show_form f
-     end
-  | Show c ->
-     begin
-       ps "Show(";
-       ps (cell_name2string c);
-       ps ")"
-     end
-  | ShowAll -> ps "ShowAll"
 
-(************ faire tourner les commandes **************)
+(*
+**  Display commands (as text)
+*)
 
-(* exécuter une commande *)
+(* comm_show - print a command's text on stdout
+   @arg  c      Command to show [comm] *)
+let comm_show c = match c with
+	| Upd (c, f) -> begin
+		ps (cell_name2string c);
+		ps "=";
+		show_form f
+	end
+	| Show c -> begin
+		ps "Show(";
+		ps (cell_name2string c);
+		ps ")"
+	end
+	| ShowAll ->
+		ps "ShowAll"
+
+
+
+(*
+**  Execute commands
+*)
+
+(* run_command - execute a command using the sheet as input
+   @arg  c      Command to run [comm] *)
 let run_command c = match c with
-  | Show cn ->
-     begin
-       sheet_recompute ();
-       let co = cellname_to_coord cn in
-       eval_p_debug (fun () ->
-           "Showing cell "
-           ^ cell_name2string cn
-         );
-       ps (cell_val2string (read_cell co)); (* <- ici ps, et pas p_debug, car on veut afficher au moins cela *)
-       print_newline()
-     end
-  | ShowAll ->
-     begin
-       eval_p_debug (fun () -> "Show All\n");
-       sheet_recompute ();
-       sheet_show ()
-     end
-  | Upd(cn,f) ->
-     let co = cellname_to_coord cn in
-     eval_p_debug (fun () -> "Update cell " ^ cell_name2string cn ^ "\n");
-     update_cell_formula co f
+	| Show name -> begin
+		sheet_recompute ();
+		let (i, j) = cellname_to_coord name in
+		eval_p_debug (fun () -> "Showing cell " ^ cell_name2string name);
+		ps (cell_val2string (read_cell (i, j)));
+		print_newline ()
+	end
+	| ShowAll -> begin
+		eval_p_debug (fun () -> "Show All\n");
+		sheet_recompute ();
+		sheet_show ()
+	end
+	| Upd(name, f) ->
+		let (i, j) = cellname_to_coord name in
+		eval_p_debug (fun () -> "Update cell " ^ cell_name2string name ^ "\n");
+		update_cell_formula (i, j) f
 
-(* exécuter une liste de commandes *)
-let run_script cs = List.iter run_command cs
+(* run_script - execute a list of commands
+   @arg  c      Script to run [comm list] *)
+let run_script cs =
+	List.iter run_command cs

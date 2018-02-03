@@ -1,0 +1,18 @@
+# Fibonnaci sequence up to F_10
+# Propagation test: A1 and A2 are defined at the very end and must "propagate
+# backward", all the way to A10
+
+A10 = SUM(A9; A8)
+A9  = SUM(A8; A7)
+A8  = SUM(A7; A6)
+A7  = SUM(A6; A5)
+A6  = SUM(A5; A4)
+A5  = SUM(A4; A3)
+A4  = SUM(A3; A2)
+A3  = SUM(A2; A1)
+A2  = 1
+A1  = 1
+
+Show A8
+Show A9
+Show A10

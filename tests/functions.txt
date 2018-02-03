@@ -1,0 +1,19 @@
+# All available functions (operators)
+# Check that they return the correct value in all cases
+
+A1 = 12
+A2 = 8
+A3 = 15
+A4 = 18
+A5 = -4
+A6 = 7
+A7 = -12
+A8 = -1
+
+B1 = SUM	(A1; A2; A3; A4; A5; A6; A7; A8)
+B2 = MULT	(A1; A2; A3; A4; A5; A6; A7; A8)
+B3 = AVERAGE(A1; A2; A3; A4; A5; A6; A7; A8)
+B4 = MAX	(A1; A2; A3; A4; A5; A6; A7; A8)
+B5 = MIN	(A1; A2; A3; A4; A5; A6; A7; A8)
+
+ShowAll

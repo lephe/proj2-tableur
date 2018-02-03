@@ -4,9 +4,12 @@
 
 open Cell
 
-(* (Hardcoded) sheet size: rows, columns, and sheet contents *)
+(* (Hardcoded) sheet size: rows, columns *)
 let size = (20, 10)
+(* Sheet contents: aliased for now because the record object is shared *)
 let thesheet = Array.make_matrix (fst size) (snd size) default_cell
+(* Dirty bit: true when some cells need to be recalculated *)
+let dirty = ref false
 
 (* read_cell - Get a pointer to the cell's record
    @arg  (i,j)  Coordinates of the requested cell [int * int]
@@ -18,7 +21,8 @@ let read_cell (i, j) =
    @arg  (i,j)  Coordinates of the requested cell [int * int]
    @arg  f      New formula for this cell [form] *)
 let update_cell_formula (i, j) f =
-	thesheet.(i).(j).formula <- f
+	thesheet.(i).(j).formula <- f;
+	dirty := true
 
 (* update_cell_value - Change the value of a cell record
    @arg  (i,j)  Coordinates of the requested cell [int * int]
@@ -79,9 +83,12 @@ let rec eval_form fo : number = match fo with
 	| Cell (p, q) -> eval_cell (p, q)
 	| Op(o, fs) -> begin
 		let vs = List.map eval_form fs in match o with
-		| S -> List.fold_left ( +. ) 0. vs
-		| M -> List.fold_left ( *. ) 1. vs
-		| A -> List.fold_left ( +. ) 0. vs /. float_of_int (List.length vs)
+		| Operator_Sum  -> List.fold_left ( +. ) 0. vs
+		| Operator_Prod -> List.fold_left ( *. ) 1. vs
+		| Operator_Avg  -> List.fold_left ( +. ) 0. vs /.
+			float_of_int (List.length vs)
+		| Operator_Max  -> List.fold_left max (List.hd vs) vs
+		| Operator_Min  -> List.fold_left min (List.hd vs) vs
 		end
 
 (* eval_cell - Fetch, or evaluate and store, the value of a cell
@@ -102,7 +109,12 @@ let sheet_invalidate () =
 	let f (i, j) = update_cell_value (i, j) None in
 	sheet_iter f
 
-(* sheet_recompute - Recompute the values of all the cells in the sheet *)
+(* sheet_update - Make sure the formulae and values are coherent
+   If there has been any update since the last call to this function,
+   invalidates the whole sheet and recalculates all the values. *)
 let sheet_recompute () =
-	sheet_invalidate ();
-	sheet_iter eval_cell
+	if !dirty then begin
+		sheet_invalidate ();
+		sheet_iter eval_cell
+	end else ();
+	dirty := false
