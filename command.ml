@@ -1,12 +1,12 @@
 (*
-**  Command - command execution (check Menhir files for the parser)
+**  Command - command execution (see lexer.mll and parser.mly for the parser)
 *)
 
-open Debug
 open Cell
+open Debug
 open Sheet
 
-(* comm - available commands for the spreadsheet scripts *)
+(* comm - available commands for spreadsheet scripts *)
 type comm =
 	| Upd of cellname * form		(* Update a cell's formula *)
 	| Show of cellname				(* Show a cell's value *)
@@ -15,24 +15,21 @@ type comm =
 
 
 (*
-**  Display commands (as text)
+**  Conversion and printing
 *)
 
-(* comm_show - print a command's text on stdout
-   @arg  c      Command to show [comm] *)
-let comm_show c = match c with
-	| Upd (c, f) -> begin
-		ps (cell_name2string c);
-		ps "=";
-		show_form f
-	end
-	| Show c -> begin
-		ps "Show(";
-		ps (cell_name2string c);
-		ps ")"
-	end
+(* print_command - Exactly what you expect [comm -> unit] *)
+let print_command c = match c with
+	| Upd (c, f) ->
+		print_cellname c;
+		print_string "=";
+		print_form f
+	| Show c ->
+		print_string "Show(";
+		print_cellname c;
+		print_string ")";
 	| ShowAll ->
-		ps "ShowAll"
+		print_string "ShowAll"
 
 
 
@@ -40,27 +37,26 @@ let comm_show c = match c with
 **  Execute commands
 *)
 
-(* run_command - execute a command using the sheet as input
-   @arg  c      Command to run [comm] *)
-let run_command c = match c with
-	| Show name -> begin
+(* command_run - execute a command using the sheet as input [comm -> unit] *)
+let command_run c = match c with
+
+	| Show name ->
 		sheet_recompute ();
-		let (i, j) = cellname_to_coord name in
-		eval_p_debug (fun () -> "Showing cell " ^ cell_name2string name);
-		ps (cell_val2string (read_cell (i, j)));
+		let (i, j) = cell_name2coord name in
+		eval_p_debug (fun () -> "Showing cell " ^ string_of_cellname name);
+		print_string (string_of_value (read_cell (i, j)).value);
 		print_newline ()
-	end
-	| ShowAll -> begin
+
+	| ShowAll ->
 		eval_p_debug (fun () -> "Show All\n");
 		sheet_recompute ();
 		sheet_show ()
-	end
+
 	| Upd(name, f) ->
-		let (i, j) = cellname_to_coord name in
-		eval_p_debug (fun () -> "Update cell " ^ cell_name2string name ^ "\n");
+		let (i, j) = cell_name2coord name in
+		eval_p_debug (fun () -> "Update " ^ string_of_cellname name ^ "\n");
 		update_cell_formula (i, j) f
 
-(* run_script - execute a list of commands
-   @arg  c      Script to run [comm list] *)
-let run_script cs =
-	List.iter run_command cs
+(* command_script - execute a list of commands [comm list -> unit] *)
+let command_script commands =
+	List.iter command_run commands

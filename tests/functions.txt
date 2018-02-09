@@ -8,7 +8,7 @@ A4 = 18
 A5 = -4
 A6 = 7
 A7 = -12
-A8 = -1
+A8 = -4
 
 B1 = SUM	(A1; A2; A3; A4; A5; A6; A7; A8)
 B2 = MULT	(A1; A2; A3; A4; A5; A6; A7; A8)
@@ -16,4 +16,22 @@ B3 = AVERAGE(A1; A2; A3; A4; A5; A6; A7; A8)
 B4 = MAX	(A1; A2; A3; A4; A5; A6; A7; A8)
 B5 = MIN	(A1; A2; A3; A4; A5; A6; A7; A8)
 
-ShowAll
+# Opposites of expected results
+C1 = -40
+C2 = 34836480
+C3 = -5.0
+C4 = -18
+C5 = 12
+
+D1 = SUM(B1; C1)
+D2 = SUM(B2; C2)
+D3 = SUM(B3; C3)
+D4 = SUM(B4; C4)
+D5 = SUM(B5; C5)
+
+# All these values should be zero
+Show D1
+Show D2
+Show D3
+Show D4
+Show D5

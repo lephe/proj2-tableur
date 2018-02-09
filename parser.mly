@@ -5,9 +5,9 @@ open Command
 
 /* Lexeme list - associated regexs are in lexer.mll */
 
-%token <int> INT		/* le lexème INT a un attribut entier */
-%token <float> NBR		/* le lexème NBR a un attribut flottant */
-%token <string> CELLROW	/* le lexème CELLROW a un attribut, de type string */
+%token <int> INT		/* le lexÃ¨me INT a un attribut entier */
+%token <float> NBR		/* le lexÃ¨me NBR a un attribut flottant */
+%token <string> CELLROW	/* le lexÃ¨me CELLROW a un attribut, de type string */
 
 %token LPAREN RPAREN EQUAL SEMICOL DOT
 %token SHOW SHOWALL
@@ -48,7 +48,7 @@ operator:
 formula:
 	| NBR { Cst $1 }
 	| INT { Cst (float $1) }
-	| cell { Cell (Cell.cellname_to_coord $1) }
+	| cell { Cell (Cell.cell_name2coord $1) }
 	| operator LPAREN forlist RPAREN { Op($1,$3) }
 
 forlist:

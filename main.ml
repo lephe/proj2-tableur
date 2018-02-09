@@ -1,31 +1,24 @@
+(*
+**  Main - a script-directed spreadsheet application
+*)
+
 open Cell
 open Sheet
 open Command
 
-(*** début de la partie "incantatoire" ***)
-(* stdin désigne l'entrée standard (le clavier) *)
-(* lexbuf est un canal ouvert sur stdin *)
+(* Create a lexer stream from stdin input *)
 let lexbuf = Lexing.from_channel stdin
 
-(* on enchaîne les tuyaux: lexbuf est passé à Lexer.token,
-   et le résultat est donné à Parser.main *)
+(* parse - lex the stream using Lexer.token, then parse it *)
+let parse () =
+	Parser.debut Lexer.token lexbuf
 
-let parse () = Parser.debut Lexer.token lexbuf
-(*** fin de la partie "incantatoire" ***)
-
+(* spreadsheet - main function
+   Run a script read from stdin, and print the results on stdout *)
 let spreadsheet () =
-      let result = parse () in
-      begin
-        run_script result;
-        flush stdout;
-      end
+	let result = parse () in
+	command_script result;
+	flush stdout;
 ;;
 
-
 let _ = spreadsheet()
-
-(* let _ = let scr = [ Upd (("C",2), Cst 3.7); ShowAll ] in
- *         begin
- *           print_string "HAHAHA!!!\n";
- *           run_script scr
- *         end *)

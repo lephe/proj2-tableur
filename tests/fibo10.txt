@@ -13,6 +13,4 @@ A3  = SUM(A2; A1)
 A2  = 1
 A1  = 1
 
-Show A8
-Show A9
 Show A10
