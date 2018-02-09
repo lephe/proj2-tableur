@@ -152,3 +152,8 @@ let sheet_show () =
 	in
 	sheet_iter g;
 	print_newline()
+
+(* sheet_recompute - Invalidate and recompute the whole sheet *)
+let sheet_recompute () =
+	sheet_iter (fun (i, j) -> update_cell_value (i, j) None);
+	sheet_iter eval_cell

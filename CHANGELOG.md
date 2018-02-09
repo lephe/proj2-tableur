@@ -56,6 +56,10 @@ evel_cell (ie. trace de la pile de récursion).
 Une évaluation qui échoue renvoie silencieusement None, et affiche un message
 d'erreur si le mode debug est activé.
 
+Ajouté un petit module Config pour gérer les options de ligne de commande, et
+implémenté l'option -naive pour revenir à l'évaluation bourrine de l'ensemble
+de la grille à chaque affichage. L'évaluation paresseuse reste le défaut.
+
 ## Version avancés
 
 ...

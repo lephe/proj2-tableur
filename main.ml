@@ -2,6 +2,7 @@
 **  Main - a script-directed spreadsheet application
 *)
 
+open Config
 open Cell
 open Sheet
 open Command
@@ -21,4 +22,8 @@ let spreadsheet () =
 	flush stdout;
 ;;
 
-let _ = spreadsheet()
+let _ =
+	(* Parse configuration *)
+	config_parse Sys.argv;
+	(* Start application *)
+	spreadsheet()
