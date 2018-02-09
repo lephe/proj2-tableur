@@ -62,6 +62,26 @@ de la grille à chaque affichage. L'évaluation paresseuse reste le défaut.
 
 ## Version avancés
 
+*Q3.1*
+
+Changé le type number en un type num qui énumère F (constructeur de float) et I
+(constructeur d'int). Les opérations de base (`+ - * / min max`) ont été
+réimplémentées dans cell.ml.
+
+*Q3.2*
+
+...
+
+*Q3.3*
+
+...
+
+*Q3.4*
+
+...
+
+## Faire du tableur un langage Turing-complet ?
+
 ...
 
 ## Conventions
