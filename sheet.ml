@@ -48,7 +48,7 @@ let update_cell_formula (i, j) f =
 (* update_cell_value - Change the value of a cell record
    @arg  (i,j)  Coordinates of the requested cell [int * int]
    @arg  v      New value for this cell [number] *)
-let update_cell_value (i, j) (v: number option) =
+let update_cell_value (i, j) (v: num option) =
 	thesheet.(i).(j).value <- v
 
 
@@ -61,7 +61,7 @@ let update_cell_value (i, j) (v: number option) =
    @arg  fo     Formula to evaluate [form]
    @arg  s		Set of already-evaluated cells [CellSet]
    @ret  Value for this sheet, None in case of cycles [number option] *)
-let rec eval_form fo (s: CellSet.t) : number option = match fo with
+let rec eval_form fo (s: CellSet.t) : num option = match fo with
 	| Cst n -> Some n
 	| Cell (p, q) -> eval_cell_cycle (p, q) s
 	| Op(o, fs) -> begin
@@ -69,12 +69,14 @@ let rec eval_form fo (s: CellSet.t) : number option = match fo with
 		let opts = List.map (fun f -> eval_form f s) fs in
 		if List.exists ((=) None) opts then None else
 		(* Otherwise, evaluate the function *)
-		let vs = List.map (function | (Some n) -> n | None -> 0.) opts in
+		let vs = List.map (function | (Some n) -> n | None -> (I 0)) opts in
 		match o with
-		| Operator_Sum  -> Some (List.fold_left ( +. ) 0. vs)
-		| Operator_Prod -> Some (List.fold_left ( *. ) 1. vs)
-		| Operator_Avg  -> Some (List.fold_left ( +. ) 0. vs /.
-			float_of_int (List.length vs))
+		| Operator_Sum  -> Some (List.fold_left num_add (I 0) vs)
+		| Operator_Prod -> Some (List.fold_left num_mul (I 1) vs)
+		| Operator_Avg  ->
+			let sum = List.fold_left num_add (I 0) vs
+			and len = I (List.length vs)
+			in Some (num_div sum len)
 		| Operator_Max  -> Some (List.fold_left max (List.hd vs) vs)
 		| Operator_Min  -> Some (List.fold_left min (List.hd vs) vs)
 		end
@@ -132,7 +134,7 @@ let sheet_init () =
 		(* Create a *new* record each time *)
 		let c = {
 			value		= None;
-			formula		= Cst 0.;
+			formula		= Cst (I 0);
 			deps		= CellSet.empty;
 			links		= CellSet.empty;
 		} in

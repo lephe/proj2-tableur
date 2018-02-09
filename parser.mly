@@ -46,8 +46,8 @@ operator:
 	| MIN		{ Operator_Min }
 
 formula:
-	| NBR { Cst $1 }
-	| INT { Cst (float $1) }
+	| NBR { Cst (F $1) }
+	| INT { Cst (I $1) }
 	| cell { Cell (Cell.cell_name2coord $1) }
 	| operator LPAREN forlist RPAREN { Op($1,$3) }
 

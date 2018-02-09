@@ -6,7 +6,9 @@
 **  Cell storage (usual types)
 *)
 
-type number = float
+type num =
+	| F of float
+	| I of int
 
 (* Operators (functions) available in formulae *)
 type oper =
@@ -18,7 +20,7 @@ type oper =
 
 (* Formula trees *)
 type form =
-	| Cst of number				(* Constant operand *)
+	| Cst of num				(* Constant operand *)
 	| Cell of (int * int)		(* Value of another cell *)
 	| Op of oper * form list	(* Numerical operator *)
 
@@ -32,18 +34,43 @@ end)
 (* Cells proper, using a record type *)
 type cell = {
 	mutable formula:	form;
-	mutable value:		number option;
+	mutable value:		num option;
 	mutable deps:		CellSet.t;
 	mutable links:		CellSet.t;
 }
 
 (* A default cell. This is a unique object, and it will alias *)
 let default_cell = {
-	formula 	= Cst 0.;
+	formula 	= Cst (I 0);
 	value		= None;
 	deps		= CellSet.empty;
 	links		= CellSet.empty;
 }
+
+
+
+(*
+**  Operation of the number type
+*)
+
+(* num_bop - apply a binary operation to a number type
+   @arg  n		First operand [num]
+   @arg  m		Second operand [num]
+   @arg  fi		int-version of the function [int -> int]
+   @arg  ff		float-version of the function [float -> float]
+   @ret  Number result, converted to the proper type *)
+let num_bop n m fi ff = match (n, m) with
+	| (F f, F g) -> F (ff f g)
+	| (F f, I i) | (I i, F f) -> F (ff f (float_of_int i))
+	| (I i, I j) -> I (fi i j)
+
+(* Usual arithmetic operations that return numbers *)
+let num_add n m = num_bop n m (+) (+.)
+let num_sub n m = num_bop n m (-) (-.)
+let num_mul n m = num_bop n m ( * ) ( *. )
+let num_div n m = num_bop n m (/) (/.)
+let num_min n m = num_bop n m min min
+let num_max n m = num_bop n m max max
 
 
 
@@ -95,14 +122,15 @@ let cell_coord2name (i, j) : cellname =
 let string_of_cellname (str, row) =
 	str ^ (string_of_int row)
 
-(* string_of_number - show numbers as strings [number -> string] *)
-let string_of_number n =
-	string_of_float n
+(* string_of_num - show numbers as strings [num -> string] *)
+let string_of_num n = match n with
+	| F f -> string_of_float f
+	| I i -> string_of_int i
 
 (* string_of_value - show values [number option -> string] *)
 let string_of_value v = match v with
 	| None -> "_"
-	| Some n -> string_of_number n
+	| Some n -> string_of_num n
 
 (* string_of_oper - get operator names [oper -> string] *)
 let string_of_oper oper = match oper with
@@ -124,7 +152,7 @@ let rec string_of_form = function
   | Cell c ->
 		let (str, row) = cell_coord2name c in
 		str ^ (string_of_int row)
-  | Cst n -> string_of_float n
+  | Cst n -> string_of_num n
   | Op(o,fl) ->
      begin
        (string_of_oper o) ^ "(" ^ string_of_list string_of_form fl ^ ")"
@@ -136,7 +164,7 @@ let ps = print_string
 
 let print_cellname c	= print_string(string_of_cellname c)
 let print_value v		= print_string (string_of_value v)
-let print_number n		= print_string (string_of_number n)
+let print_num n			= print_string (string_of_num n)
 let print_oper o		= print_string (string_of_oper o)
 let print_form f		= print_string (string_of_form f)
 
