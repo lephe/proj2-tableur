@@ -1,0 +1,6 @@
+# Dependency cycle between A1 and A2
+A1 = A2
+A2 = A1
+
+# We need to show something or the program will get away with lazy evaluation
+Show A1

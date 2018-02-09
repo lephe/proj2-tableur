@@ -41,20 +41,17 @@ let print_command c = match c with
 let command_run c = match c with
 
 	| Show name ->
-		sheet_recompute ();
 		let (i, j) = cell_name2coord name in
-		eval_p_debug (fun () -> "Showing cell " ^ string_of_cellname name);
-		print_string (string_of_value (read_cell (i, j)).value);
+		eval_p_debug (fun () -> "Showing cell "^string_of_cellname name^"\n");
+		print_value (eval_cell (i, j));
 		print_newline ()
 
 	| ShowAll ->
 		eval_p_debug (fun () -> "Show All\n");
-		sheet_recompute ();
 		sheet_show ()
 
 	| Upd(name, f) ->
 		let (i, j) = cell_name2coord name in
-		eval_p_debug (fun () -> "Update " ^ string_of_cellname name ^ "\n");
 		update_cell_formula (i, j) f
 
 (* command_script - execute a list of commands [comm list -> unit] *)

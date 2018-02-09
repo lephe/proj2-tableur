@@ -25,7 +25,7 @@ Ajouté un test "functions" pour tester les cinq fonctions disponibles.
 
 ## Version intermédiaires
 
-*Q2.1*
+*Q2.2*
 
 Créé un module CellSet pour manipuler des ensembles de cellules en temps
 logarithmique.
@@ -37,6 +37,24 @@ l'ensemble des dépendances d'une cellule.
 Changé quelques noms de plus ; ça manque de conventions ce code.
 - Convertir un objet de type "type" en chaîne de caractères: string_of_type
 - Afficher un objet de type "type": print_type
+
+Implémenté un mode d'évaluation paresseuse à l'aide des dépendances : un script
+qui n'affiche rien ne calcule rien, et seules les cellules utilisées sont
+évaluées. À chaque fois que la formule d'une cellule est changée, sa valeur,
+ainsi que celle des cellules qui en dépendent, est invalidée.
+
+Petite optimisation : si la nouvelle formule est une constante, sa valeur est
+inscrite immédiatement dans la cellule mise à jour (au lieu de délayer
+l'évaluation, qui pour le coup est triviale).
+
+*Q2.3*
+
+Implémenté la détection des cycles à l'aide d'un paramètre passé à
+l'évaluateur : ensemble des cellules déjà évaluées pour un même appel à
+evel_cell (ie. trace de la pile de récursion).
+
+Une évaluation qui échoue renvoie silencieusement None, et affiche un message
+d'erreur si le mode debug est activé.
 
 ## Version avancés
 
