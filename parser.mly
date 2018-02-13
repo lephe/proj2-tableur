@@ -52,6 +52,7 @@ formula:
 	| INT { Cst (I $1) }
 	| cell { Cell (Cell.cell_name2coord $1) }
 	| operator LPAREN forlist RPAREN { Op($1,$3) }
+	| SHEET LPAREN formula SEMICOL formula RPAREN { Func($1,$3,$5) }
 
 forlist:
 	| formula { [$1] }

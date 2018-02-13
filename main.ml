@@ -27,3 +27,29 @@ let _ =
 	config_parse Sys.argv;
 	(* Start application *)
 	spreadsheet()
+
+(*
+**  Additionnal code for name/coordinate verification - run it if you change
+**  the cell_coord2name or cell_name2coord functions!
+*)
+
+(* let check_name name =
+	print_string name;
+	print_string " => ";
+	let i = snd (cell_name2coord (name, 1)) in
+	print_int i;
+	print_string " => ";
+	print_string (fst (cell_coord2name (0, i)));
+	print_newline ()
+
+let _ =
+	check_name "A";
+	check_name "Z";
+	check_name "AA";
+	check_name "AZ";
+	check_name "BA";
+	check_name "ZZ";
+	check_name "AAA";
+	check_name "ZZZ";
+	check_name "AAAA";
+	print_string "===\n" *)

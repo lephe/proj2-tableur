@@ -40,6 +40,13 @@ let sheet_current = ref 0
 let read_cell (i, j) =
 	sheet_array.(!sheet_current).(i).(j)
 
+(* sheet_switch - Switch to another sheet *)
+let sheet_switch s =
+	if s < 0 || s >= sheet_count then
+		failwith ("sheet_switch: requested sheet (" ^ (string_of_int (s + 1))
+			^ ") is out of bounds")
+	else sheet_current := s
+
 (* sheet_link - Create a dependency linking (i, j) to (k, l)
    [int * int -> int * int -> unit] *)
 let sheet_link (i, j) (k, l) =
@@ -66,12 +73,19 @@ let update_cell_formula (i, j) f =
 	(* Then set the new formula and link all the new dependencies *)
 	c.formula <- f;
 	form_iter f (sheet_link (i, j));
-	(* Invalidate the cell's links' value *)
-	CellSet.iter (fun (i, j) -> (read_cell (i, j)).value <- None) c.links;
-	(* Also invalidate the cell value, but not if it's a constant *)
+	(* Recursively invalidate the cell's links' value *)
+	let rec inval (i, j) =
+		let cell = read_cell (i, j) in
+		(* Prevent infinite recursion *)
+		if cell.value <> None then begin
+			cell.value <- None;
+			CellSet.iter inval cell.links
+		end
+	in inval (i, j);
+	(* If the new formula is a constant, set it directly *)
 	match f with
-	| Cst n -> c.value <- Some n;
-	| _ -> c.value <- None
+	| Cst n -> c.value <- Some n
+	| _ -> ()
 
 (* update_cell_value - Change the value of a cell record
    @arg  (i,j)  Coordinates of the requested cell [int * int]
@@ -90,8 +104,11 @@ let update_cell_value (i, j) (v: num option) =
    @arg  s		Set of already-evaluated cells [CellSet]
    @ret  Value for this sheet, None in case of cycles [number option] *)
 let rec eval_form fo (s: CellSet.t) : num option = match fo with
+
 	| Cst n -> Some n
+
 	| Cell (p, q) -> eval_cell_cycle (p, q) s
+
 	| Op(o, fs) -> begin
 		(* If a cycle is detected during operand evaluation, propagate None *)
 		let opts = List.map (fun f -> eval_form f s) fs in
@@ -108,6 +125,27 @@ let rec eval_form fo (s: CellSet.t) : num option = match fo with
 		| Operator_Max  -> Some (List.fold_left max (List.hd vs) vs)
 		| Operator_Min  -> Some (List.fold_left min (List.hd vs) vs)
 		end
+
+	| Func(sheet, f1, f2) ->
+		(* Forbid self-evaluation *)
+		if sheet = !sheet_current then
+			failwith "eval_form: cannot call a sheet from inside itself";
+		(* First evaluate the parameters and rule out cycles *)
+		let v1 = eval_form f1 s and v2 = eval_form f2 s in
+		match (v1, v2) with
+		| (None, _) | (_, None) -> None
+		| (Some n1, Some n2) ->
+			(* Remember current sheet and switch to sheet s *)
+			let old = !sheet_current in
+			sheet_switch sheet;
+			update_cell_formula (0, 0) (Cst n1);
+			update_cell_formula (1, 0) (Cst n2);
+			(* Start evaluation with a *new empty* visited cell set - we are in
+			   an other temporary sheet! *)
+			let v3 = eval_cell (2, 0) in
+			(* Transfer the result to the original sheet *)
+			sheet_switch old;
+			v3
 
 (* eval_cell_cycle - Evaluate, but check cycles
    If no cycle happens, the value of the evaluated cell is updated to Some n.
@@ -152,11 +190,6 @@ let sheet_iter f =
 		f (i, j)
 	done; done
 
-(* sheet_switch - Switch to another sheet *)
-let sheet_switch s =
-	if s <= 0 || s > sheet_count then
-		failwith "sheet_switch: requested sheet is out of bounds"
-	else sheet_current := s - 1
 
 (* sheet_show - Print the contents of the sheet on stdout *)
 let sheet_show () =

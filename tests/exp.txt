@@ -1,0 +1,49 @@
+# Linear exponentiation test
+# Good luck!
+
+# Sheet 1 performs a loop test
+# Input:   A1 any integer; A2 any integer
+# Output:  A1 if A2 > 1, 1 otherwise
+
+SwitchTo s1
+B1 = SUM(A2; -1)
+
+# B2 = (1 if B1 > 0) (0 otherwise)
+B3 = MIN(1; MAX(B1; 0))
+B2 = MIN(1; MAX(B1; 0))
+A3 = SUM(MULT(A1; B2); 1; MULT(-1; B2))
+
+# Sheet 2 calculates the exponentiation function
+# Input:   A1 any integer; 1 <= A2 <= 8
+# Output:  A1 ** A2
+
+SwitchTo s2
+
+B1 = A1
+B2 = MULT(B1; s1(A1; C1))
+B3 = MULT(B2; s1(A1; C2))
+B4 = MULT(B3; s1(A1; C3))
+B5 = MULT(B4; s1(A1; C4))
+B6 = MULT(B5; s1(A1; C5))
+B7 = MULT(B6; s1(A1; C6))
+B8 = MULT(B7; s1(A1; C7))
+
+C1 = A2
+C2 = MAX(SUM(C1; -1); 1)
+C3 = MAX(SUM(C2; -1); 1)
+C4 = MAX(SUM(C3; -1); 1)
+C5 = MAX(SUM(C4; -1); 1)
+C6 = MAX(SUM(C5; -1); 1)
+C7 = MAX(SUM(C6; -1); 1)
+C8 = MAX(SUM(C7; -1); 1)
+
+A3 = B8
+
+# Some tests
+
+SwitchTo s3
+
+A1 = s2(-17; 5)
+A2 = 1419857
+A3 = SUM(A1; A2)
+Show A3

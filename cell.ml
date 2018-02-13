@@ -23,6 +23,7 @@ type form =
 	| Cst of num				(* Constant operand *)
 	| Cell of (int * int)		(* Value of another cell *)
 	| Op of oper * form list	(* Numerical operator *)
+	| Func of int * form * form	(* Evaluation of sheet function *)
 
 (* A set of cell coordinates. Set.Make creates a specialized ordered-set type
    using binary trees, provided a base type and a comparison function *)
@@ -82,9 +83,10 @@ let num_max n m = num_bop n m max max
    @arg  f		Formula to traverse
    @arg  iter	Iterated function [(int * int) -> unit] *)
 let rec form_iter f iter = match f with
-  | Cst _ -> ()
-  | Cell(c) -> iter c
-  | Op(_, fs) -> List.iter (fun f -> form_iter f iter) fs
+	| Cst _ -> ()
+	| Cell(c) -> iter c
+	| Op(_, fs) -> List.iter (fun f -> form_iter f iter) fs
+	| Func(_, f1, f2) -> form_iter f1 iter; form_iter f2 iter
 
 
 
@@ -100,17 +102,31 @@ type cellname = string * int
    [cellname -> int * int]
    TODO: Support column names with several letters *)
 let cell_name2coord (str, row) =
-	if String.length str > 1 then
-		failwith "cell_name2coord : désolé, je ne sais pas faire"
-	else (row - 1, int_of_char str.[0] - 65)
+	let col = ref 0 in
+	for i = 0 to String.length str - 1 do
+		col := 26 * !col + (int_of_char str.[i] - 64)
+	done;
+	(row - 1, !col - 1)
 
 (* cell_coord2name - convert integer coordinates to cell names
    [int * int -> cellname]
    TODO: Support column names with several letters *)
 let cell_coord2name (i, j) : cellname =
-	if j > 25 then
-		failwith "cell_coord2name : cela ne devrait pas se produire"
-	else (String.make 1 (char_of_int (j + 65)), i + 1)
+	let length = ref 1 and col = ref j and power = ref 26 in
+	(* First decide the length and turn "global j" into "j for this length" *)
+	while !col >= !power do
+		incr length;
+		col := !col - !power;
+		power := !power * 26
+	done;
+	(* Calculate all the characters with a base-26 decomposition *)
+	let s = ref "" in
+	for i = 1 to !length do
+		let c = char_of_int (!col mod 26 + 65) in
+		s := String.concat "" [ String.make 1 c; !s ];
+		col := !col / 26
+	done;
+	(!s, i + 1)
 
 
 
@@ -149,14 +165,16 @@ let rec string_of_list f l = match l with
 
 (* string_of_form - show formulas as strings [form -> string] *)
 let rec string_of_form = function
-  | Cell c ->
+	| Cell c ->
 		let (str, row) = cell_coord2name c in
 		str ^ (string_of_int row)
-  | Cst n -> string_of_num n
-  | Op(o,fl) ->
-     begin
-       (string_of_oper o) ^ "(" ^ string_of_list string_of_form fl ^ ")"
-     end
+	| Cst n -> string_of_num n
+	| Op(o,fl) ->
+		(string_of_oper o) ^ "(" ^ string_of_list string_of_form fl ^ ")"
+	| Func(s,f1,f2) ->
+		"s" ^ (string_of_int s) ^ "(" ^ (string_of_form f1) ^ ";"
+		^ (string_of_form f2) ^ ")"
+
 
 (* Associated printing functions *)
 
@@ -172,4 +190,3 @@ let rec print_list f = function
 	| [x] -> f x
 	| x::xs -> f x; ps ";"; print_list f xs
 	| _ -> failwith "show_list: the list shouldn't be empty"
-

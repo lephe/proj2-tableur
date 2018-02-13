@@ -87,14 +87,13 @@ s'écrasent pas les unes les autres.
 
 *Q3.4*
 
-...
+Ajouté un type de formule, Func of int * form * form, pour les appels de
+tableaux. Corrigé un terrible bug où l'invalidation des dépendances lors de la
+modification d'une cellule n'était pas récursive. x)
 
-## Faire du tableur un langage Turing-complet ?
+Écrit un nouveau test qui calcule une exponentation en temps linéaire (exposant
+borné à 8).
 
-...
-
-## Conventions
-
-Il est supposé que les valeurs écrites dans chaque cellule sont toujours les
-évaluations de la formule asociée. Pour cette raison, sheet::update_cell_value
-ne positionne pas le "dirty bit" (ce qui serait ironique lors du recalcul !).
+Ajouté le support des noms de colonnes à plusieurs lettres. C'est plus
+compliqué que ça en a l'air, donc j'ai laissé un bout de tests dans main.ml.
+On pourrait mettre une option dessus, éventuellement.
