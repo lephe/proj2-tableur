@@ -1,0 +1,17 @@
+# Check if we can use multiple sheets properly
+# Expected results: 12 -5
+
+SwitchTo s1
+A1 = 4.0
+A2 = SUM(A1; A1; A1)
+
+SwitchTo s2
+A1 = 8.0
+A2 = -6.5
+A3 = SUM(A1; A2; A2)
+
+SwitchTo s1
+Show A2
+
+SwitchTo s2
+Show A3

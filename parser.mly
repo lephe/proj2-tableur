@@ -5,12 +5,13 @@ open Command
 
 /* Lexeme list - associated regexs are in lexer.mll */
 
-%token <int> INT		/* le lexème INT a un attribut entier */
-%token <float> NBR		/* le lexème NBR a un attribut flottant */
-%token <string> CELLROW	/* le lexème CELLROW a un attribut, de type string */
+%token <int>	INT
+%token <float>	NBR
+%token <string>	CELLROW /* Cell rows are converted later */
+%token <int>	SHEET
 
 %token LPAREN RPAREN EQUAL SEMICOL DOT
-%token SHOW SHOWALL
+%token SWITCHTO SHOW SHOWALL
 %token SUM MULT AVERAGE MAX MIN
 %token EOF
 
@@ -32,6 +33,7 @@ clist:
 
 singlecomm:
 	| cell EQUAL formula { Upd($1,$3) }
+	| SWITCHTO SHEET { SwitchTo($2) }
 	| SHOW cell { Show($2) }
 	| SHOWALL { ShowAll }
 

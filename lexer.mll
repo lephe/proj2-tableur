@@ -1,9 +1,9 @@
 {
-  open Parser;;        (* le type "token" est défini dans parser.mli *)
-(* ce n'est pas à vous d'écrire ce fichier, il est engendré automatiquement *)
+	open Parser;;
 }
 
-rule token = parse    (* la "fonction" aussi s'appelle token .. *)
+rule token = parse
+
 	(* Ignore whitespaces *)
 	| [' ' '\t' '\n'] { token lexbuf }
 
@@ -19,8 +19,9 @@ rule token = parse    (* la "fonction" aussi s'appelle token .. *)
 	| '.' { DOT }
 
     (* Program commands *)
-	| "Show"	{ SHOW }
-	| "ShowAll"	{ SHOWALL }
+	| "SwitchTo"	{ SWITCHTO }
+	| "Show"		{ SHOW }
+	| "ShowAll"		{ SHOWALL }
 
 	(* Spreadsheet functions *)
 	| "SUM"		{ SUM }
@@ -30,6 +31,9 @@ rule token = parse    (* la "fonction" aussi s'appelle token .. *)
 	| "MIN"		{ MIN }
 
 	(* Input values *)
+	| 's'['0'-'9'] as s {
+		let sub = String.sub s 1 (String.length s - 1) in
+		SHEET (int_of_string sub) }
 	| '-'? ['0'-'9']+ '.' ['0'-'9']* as s { NBR (float_of_string s) }
 	| '-'? ['0'-'9']+ as s { INT (int_of_string s) }
 	| ['A'-'Z']+ as s { CELLROW s }

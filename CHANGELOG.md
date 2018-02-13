@@ -11,7 +11,8 @@ Renommé sheet_recompute and sheet_update : son nouveau rôle est de faire ce
 qu'il faut pour s'assurer que la feuille est cohérente, sans forcément tout
 recalculer.
 
-Ajouté des commentaires au langage du tableur et un test "fibonacci" pour tester la propagation des données.
+Ajouté des commentaires au langage du tableur et un test "fibo10" pour tester
+la propagation des données.
 
 *Q1.3*
 
@@ -74,7 +75,15 @@ réimplémentées dans cell.ml.
 
 *Q3.3*
 
-...
+Modifié la fonction d'initialisation, désormais sheet_create qui est appelée
+par Array.make de façon automatique (on n'a plus l'état transitoir où le
+tableau aliase le même record sur toutes les cellules).
+
+Ajouté des tokens SWITCHTO (/SwitchTo/) et SHEET (/s[0-9]+/) au lexer, et une
+règle de production dans le parser pour cette commande.
+
+Créé un test basique "sheets" pour vérifier que les cellules utilisées ne
+s'écrasent pas les unes les autres.
 
 *Q3.4*
 

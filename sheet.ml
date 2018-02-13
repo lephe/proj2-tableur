@@ -5,28 +5,56 @@
 open Cell
 open Debug
 
-(* Sheet size: rows, columns *)
+(* Sheet size: rows, columns; and sheet count *)
 let size = (20, 10)
-(* Sheet contents: aliased for now because the record object is shared *)
-let thesheet = Array.make_matrix (fst size) (snd size) default_cell
+let sheet_count = 10
+
+(* sheet_create - Create a sheet of a given size
+   @arg  (rows,cols)  Size of the sheet [int * int]
+   @arg  _            Sheet index (provided by Array.init) [int] *)
+let sheet_create (rows, cols) _ =
+
+	let init_matrix rows cols func =
+		let init_row i = Array.init cols (func i) in
+		Array.init rows init_row
+
+	in let one i j =
+		(* Create a *new* record each time *)
+		let c = {
+			value		= None;
+			formula		= Cst (I 0);
+			deps		= CellSet.empty;
+			links		= CellSet.empty;
+		} in c
+
+	in init_matrix rows cols one
+
+(* Sheet array (this is the real data storage) *)
+let sheet_array = Array.init sheet_count (sheet_create size)
+(* Currently selected sheet *)
+let sheet_current = ref 0
 
 (* read_cell - Get a pointer to the cell's record
    @arg  (i,j)  Coordinates of the requested cell [int * int]
    @ret  Associated record [cell] *)
 let read_cell (i, j) =
-	thesheet.(i).(j)
+	sheet_array.(!sheet_current).(i).(j)
 
-(* sheet_link - Create a dependency link from (i, j) to (k, l)
+(* sheet_link - Create a dependency linking (i, j) to (k, l)
    [int * int -> int * int -> unit] *)
 let sheet_link (i, j) (k, l) =
-	thesheet.(i).(j).deps  <- CellSet.add (k, l) thesheet.(i).(j).deps;
-	thesheet.(k).(l).links <- CellSet.add (i, j) thesheet.(k).(l).links
+	let src = read_cell (i, j)
+	and dst = read_cell (k, l) in
+	src.deps  <- CellSet.add (k, l) src.deps;
+	dst.links <- CellSet.add (i, j) dst.links
 
-(* sheet_unlink - Remove a dependency link of (i, j) towards (k, l)
+(* sheet_unlink - Remove a dependency linking (i, j) to (k, l)
    [int * int -> int * int -> unit] *)
 let sheet_unlink (i, j) (k, l) =
-	thesheet.(i).(j).deps  <- CellSet.remove (k, l) thesheet.(i).(j).deps;
-	thesheet.(k).(l).links <- CellSet.remove (i, j) thesheet.(k).(l).links
+	let src = read_cell (i, j)
+	and dst = read_cell (k, l) in
+	src.deps  <- CellSet.remove (k, l) src.deps;
+	dst.links <- CellSet.remove (i, j) dst.links
 
 (* update_cell_formula - Change the formula of a cell record
    @arg  (i,j)  Coordinates of the requested cell [int * int]
@@ -39,7 +67,7 @@ let update_cell_formula (i, j) f =
 	c.formula <- f;
 	form_iter f (sheet_link (i, j));
 	(* Invalidate the cell's links' value *)
-	CellSet.iter (fun (i, j) -> thesheet.(i).(j).value <- None) c.links;
+	CellSet.iter (fun (i, j) -> (read_cell (i, j)).value <- None) c.links;
 	(* Also invalidate the cell value, but not if it's a constant *)
 	match f with
 	| Cst n -> c.value <- Some n;
@@ -49,7 +77,7 @@ let update_cell_formula (i, j) f =
    @arg  (i,j)  Coordinates of the requested cell [int * int]
    @arg  v      New value for this cell [number] *)
 let update_cell_value (i, j) (v: num option) =
-	thesheet.(i).(j).value <- v
+	(read_cell (i, j)).value <- v
 
 
 
@@ -84,7 +112,7 @@ let rec eval_form fo (s: CellSet.t) : num option = match fo with
 (* eval_cell_cycle - Evaluate, but check cycles
    If no cycle happens, the value of the evaluated cell is updated to Some n.
    @arg  (i,j)  Coordinates of requested cell [int * int]
-   @ret  Value of the cell; None if a cycle is detected [number options] *)
+   @ret  Value of the cell; None if a cycle is detected [number option] *)
 and eval_cell_cycle (i, j) (s: CellSet.t) =
 
 	(* Check cycles, returning None on error *)
@@ -105,9 +133,7 @@ and eval_cell_cycle (i, j) (s: CellSet.t) =
 		v
 	| Some v -> Some v
 
-(* eval_cell - Fetch, or evaluate and store, the value of a cell
-   Wrapper for eval_cell_cycle that calls with an empty set of alread-evaluated
-   cells. *)
+(* eval_cell - Fetch, or evaluate and store, the value of a cell *)
 and eval_cell (i, j) =
 	eval_cell_cycle (i, j) CellSet.empty
 
@@ -126,23 +152,11 @@ let sheet_iter f =
 		f (i, j)
 	done; done
 
-(* sheet_init - Initialize the sheet with empty cells
-   We have to do this because Array.make_matrix linked the *same* record object
-   in every cell, which is inconvenient *)
-let sheet_init () =
-	let init_cell (i, j) =
-		(* Create a *new* record each time *)
-		let c = {
-			value		= None;
-			formula		= Cst (I 0);
-			deps		= CellSet.empty;
-			links		= CellSet.empty;
-		} in
-		thesheet.(i).(j) <- c
-	in sheet_iter init_cell
-
-(* Now perform the initialization *)
-let _ = sheet_init ()
+(* sheet_switch - Switch to another sheet *)
+let sheet_switch s =
+	if s <= 0 || s > sheet_count then
+		failwith "sheet_switch: requested sheet is out of bounds"
+	else sheet_current := s - 1
 
 (* sheet_show - Print the contents of the sheet on stdout *)
 let sheet_show () =

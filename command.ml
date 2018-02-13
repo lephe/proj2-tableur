@@ -10,6 +10,7 @@ open Sheet
 (* comm - available commands for spreadsheet scripts *)
 type comm =
 	| Upd of cellname * form		(* Update a cell's formula *)
+	| SwitchTo of int				(* Switch to a different sheet *)
 	| Show of cellname				(* Show a cell's value *)
 	| ShowAll						(* Show all cells *)
 
@@ -25,6 +26,10 @@ let print_command c = match c with
 		print_cellname c;
 		print_string "=";
 		print_form f
+	| SwitchTo s ->
+		print_string "SwitchTo(";
+		print_int s;
+		print_string ")";
 	| Show c ->
 		print_string "Show(";
 		print_cellname c;
@@ -49,6 +54,9 @@ let command_run c = match c with
 		eval_p_debug (fun () -> "Showing cell "^string_of_cellname name^"\n");
 		print_value (eval_cell (i, j));
 		print_newline ()
+
+	| SwitchTo s ->
+		sheet_switch s
 
 	| ShowAll ->
 		(* Recompute the whole sheet if in naive mode *)
