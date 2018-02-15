@@ -1,0 +1,8 @@
+# Large function: just parse and process blindly.
+
+SwitchTo s1
+A3 = MAX(A1; A2)
+
+SwitchTo s2
+A1 = SUM(-4.; -5; MULT(-2.5; AVERAGE(-2; -6.0)); MIN(0; s1(-2; -1)))
+Show A1

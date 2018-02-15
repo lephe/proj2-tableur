@@ -6,7 +6,7 @@ open Cell
 open Debug
 
 (* Sheet size: rows, columns; and sheet count *)
-let size = (20, 10)
+let size = (100, 100)
 let sheet_count = 10
 
 (* sheet_create - create a sheet of a given size
@@ -126,7 +126,8 @@ let rec eval_form fo (s: CellSet.t) : num option = match fo with
 		| Operator_Prod -> Some (List.fold_left num_mul (I 1) vs)
 		| Operator_Avg  ->
 			let sum = List.fold_left num_add (I 0) vs
-			and len = I (List.length vs)
+			(* Make this a float to make sure we don't use integer division *)
+			and len = F (float_of_int (List.length vs))
 			in Some (num_div sum len)
 		| Operator_Max  -> Some (List.fold_left max (List.hd vs) vs)
 		| Operator_Min  -> Some (List.fold_left min (List.hd vs) vs)

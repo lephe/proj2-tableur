@@ -1,0 +1,6 @@
+# Check coordinates with several letters
+
+A1 = 12
+BC4 = SUM(A1; 30)
+AZ2 = SUM(BC4; -42)
+Show AZ2
