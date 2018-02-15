@@ -1,4 +1,4 @@
-(Notes en vrac)
+# Projet 2 : Rendu 1 (Sébastien Michelland et Sébastien Baumert)
 
 Lors d'une évaluation de fonction, le calcul est abandonné dès que l'évaluation
 de l'une des deux opérandes échoue (en cas de cycle), et dans ce cas aucune

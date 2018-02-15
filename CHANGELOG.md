@@ -7,9 +7,9 @@ Implémenté les fonctions sheet::eval_form et sheet::eval_cell.
 *Q1.2*
 
 Ajouté une variable "dirty" indiquant si la feuille a besoin d'être recalculée.
-Renommé sheet_recompute and sheet_update : son nouveau rôle est de faire ce
+Renommé sheet_recompute en sheet_update : son nouveau rôle est de faire ce
 qu'il faut pour s'assurer que la feuille est cohérente, sans forcément tout
-recalculer.
+recalculer. (NB: Révoqué par les questions suivantes.)
 
 Ajouté des commentaires au langage du tableur et un test "fibo10" pour tester
 la propagation des données.
@@ -76,7 +76,7 @@ réimplémentées dans cell.ml.
 *Q3.3*
 
 Modifié la fonction d'initialisation, désormais sheet_create qui est appelée
-par Array.make de façon automatique (on n'a plus l'état transitoir où le
+par Array.make de façon automatique (on n'a plus l'état transitoire où le
 tableau aliase le même record sur toutes les cellules).
 
 Ajouté des tokens SWITCHTO (/SwitchTo/) et SHEET (/s[0-9]+/) au lexer, et une
@@ -87,7 +87,7 @@ s'écrasent pas les unes les autres.
 
 *Q3.4*
 
-Ajouté un type de formule, Func of int * form * form, pour les appels de
+Ajouté un type de formule, `Func of int * form * form`, pour les appels de
 tableaux. Corrigé un terrible bug où l'invalidation des dépendances lors de la
 modification d'une cellule n'était pas récursive. x)
 
@@ -96,4 +96,5 @@ borné à 8).
 
 Ajouté le support des noms de colonnes à plusieurs lettres. C'est plus
 compliqué que ça en a l'air, donc j'ai laissé un bout de tests dans main.ml.
-On pourrait mettre une option dessus, éventuellement.
+L'option -checks déclenche l'appel à la fonction de test avant l'exécution du
+script (pour debugger).

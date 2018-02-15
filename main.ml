@@ -10,46 +10,38 @@ open Command
 (* Create a lexer stream from stdin input *)
 let lexbuf = Lexing.from_channel stdin
 
-(* parse - lex the stream using Lexer.token, then parse it *)
+(* parse - lex the stream, then parse it *)
 let parse () =
 	Parser.debut Lexer.token lexbuf
 
-(* spreadsheet - main function
-   Run a script read from stdin, and print the results on stdout *)
+(* spreadsheet - main function (usually)
+   Runs a script read from stdin, and prints the results on stdout *)
 let spreadsheet () =
 	let result = parse () in
 	command_script result;
-	flush stdout;
-;;
+	flush stdout
+
+(* Some check functions (for debugging purposes only) *)
+let check_coords () =
+	let check_name name =
+		print_string name;
+		print_string " => ";
+		let i = snd (cell_name2coord (name, 1)) in
+		print_int i;
+		print_string " => ";
+		print_string (fst (cell_coord2name (0, i)));
+		print_newline ()
+	in
+	print_string "Checking multiple-letter column names:\n";
+	check_name "Z";
+	check_name "AA";
+	check_name "BZ";
+	check_name "ZZB";
+	check_name "AAAA"
 
 let _ =
 	(* Parse configuration *)
 	config_parse Sys.argv;
 	(* Start application *)
-	spreadsheet()
-
-(*
-**  Additionnal code for name/coordinate verification - run it if you change
-**  the cell_coord2name or cell_name2coord functions!
-*)
-
-(* let check_name name =
-	print_string name;
-	print_string " => ";
-	let i = snd (cell_name2coord (name, 1)) in
-	print_int i;
-	print_string " => ";
-	print_string (fst (cell_coord2name (0, i)));
-	print_newline ()
-
-let _ =
-	check_name "A";
-	check_name "Z";
-	check_name "AA";
-	check_name "AZ";
-	check_name "BA";
-	check_name "ZZ";
-	check_name "AAA";
-	check_name "ZZZ";
-	check_name "AAAA";
-	print_string "===\n" *)
+	if config.checks then check_coords ();
+	spreadsheet ()

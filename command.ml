@@ -17,30 +17,7 @@ type comm =
 
 
 (*
-**  Conversion and printing
-*)
-
-(* print_command - Exactly what you expect [comm -> unit] *)
-let print_command c = match c with
-	| Upd (c, f) ->
-		print_cellname c;
-		print_string "=";
-		print_form f
-	| SwitchTo s ->
-		print_string "SwitchTo(";
-		print_int s;
-		print_string ")";
-	| Show c ->
-		print_string "Show(";
-		print_cellname c;
-		print_string ")";
-	| ShowAll ->
-		print_string "ShowAll"
-
-
-
-(*
-**  Execute commands
+**  Command execution
 *)
 
 (* command_run - execute a command using the sheet as input [comm -> unit] *)
@@ -51,7 +28,7 @@ let command_run c = match c with
 		if config.naive then sheet_recompute ();
 
 		let (i, j) = cell_name2coord name in
-		eval_p_debug (fun () -> "Showing cell "^string_of_cellname name^"\n");
+		eval_p_debug (fun () -> "Showing cell " ^string_of_cellname name^"\n");
 		print_value (eval_cell (i, j));
 		print_newline ()
 
@@ -70,5 +47,28 @@ let command_run c = match c with
 		update_cell_formula (i, j) f
 
 (* command_script - execute a list of commands [comm list -> unit] *)
-let command_script commands =
-	List.iter command_run commands
+let command_script =
+	List.iter command_run
+
+
+
+(*
+**  String conversion and printing
+*)
+
+(* print_command - exactly what you expect [comm -> unit] *)
+let print_command c = match c with
+	| Upd (c, f) ->
+		print_cellname c;
+		print_string "=";
+		print_form f
+	| SwitchTo s ->
+		print_string "SwitchTo(";
+		print_int s;
+		print_string ")";
+	| Show c ->
+		print_string "Show(";
+		print_cellname c;
+		print_string ")";
+	| ShowAll ->
+		print_string "ShowAll"

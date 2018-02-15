@@ -3,14 +3,15 @@
 *)
 
 (*
-**  Cell storage (usual types)
+**  Cell storage: internal representation used by the application
 *)
 
+(* Numerical values stored in the cells *)
 type num =
 	| F of float
 	| I of int
 
-(* Operators (functions) available in formulae *)
+(* Operators (functions) available in formulas *)
 type oper =
 	| Operator_Sum		(* Sum of all arguments [default 0] *)
 	| Operator_Prod		(* Product of all arguments [default 1] *)
@@ -20,10 +21,10 @@ type oper =
 
 (* Formula trees *)
 type form =
-	| Cst of num				(* Constant operand *)
-	| Cell of (int * int)		(* Value of another cell *)
-	| Op of oper * form list	(* Numerical operator *)
-	| Func of int * form * form	(* Evaluation of sheet function *)
+	| Cst of num					(* Constant operand *)
+	| Cell of (int * int)			(* Value of another cell *)
+	| Op of oper * form list		(* Numerical operator *)
+	| Func of int * form * form		(* Evaluation of sheet function *)
 
 (* A set of cell coordinates. Set.Make creates a specialized ordered-set type
    using binary trees, provided a base type and a comparison function *)
@@ -32,7 +33,7 @@ module CellSet = Set.Make(struct
 	let compare = Pervasives.compare
 end)
 
-(* Cells proper, using a record type *)
+(* Cells proper, using a mutable record type *)
 type cell = {
 	mutable formula:	form;
 	mutable value:		num option;
@@ -51,27 +52,30 @@ let default_cell = {
 
 
 (*
-**  Operation of the number type
+**  Operations for the "num" type
 *)
 
 (* num_bop - apply a binary operation to a number type
-   @arg  n		First operand [num]
-   @arg  m		Second operand [num]
+   This functions performs int-int operations when possible, but defaults to
+   float-float and integer promotion when there are floating-point operands.
    @arg  fi		int-version of the function [int -> int]
    @arg  ff		float-version of the function [float -> float]
+   @arg  n		First operand [num]
+   @arg  m		Second operand [num]
    @ret  Number result, converted to the proper type *)
-let num_bop n m fi ff = match (n, m) with
+let num_bop fi ff n m = match (n, m) with
 	| (F f, F g) -> F (ff f g)
-	| (F f, I i) | (I i, F f) -> F (ff f (float_of_int i))
+	| (F f, I i) -> F (ff f (float_of_int i))
+	| (I i, F f) -> F (ff (float_of_int i) f)
 	| (I i, I j) -> I (fi i j)
 
 (* Usual arithmetic operations that return numbers *)
-let num_add n m = num_bop n m (+) (+.)
-let num_sub n m = num_bop n m (-) (-.)
-let num_mul n m = num_bop n m ( * ) ( *. )
-let num_div n m = num_bop n m (/) (/.)
-let num_min n m = num_bop n m min min
-let num_max n m = num_bop n m max max
+let num_add = num_bop (+) (+.)
+let num_sub = num_bop (-) (-.)
+let num_mul = num_bop ( * ) ( *. )
+let num_div = num_bop (/) (/.)
+let num_min = num_bop min min
+let num_max = num_bop max max
 
 
 
@@ -79,7 +83,9 @@ let num_max n m = num_bop n m max max
 **  Operation on the data structures
 *)
 
-(* form_iter - iterate a function on all cells listed in a formula
+(* form_iter - iterate a function on all cells appearing in a formula
+   This function does not heed for repetitions; using "SUM(A1, A1)" for f will
+   call iter twice with parameter (0, 0).
    @arg  f		Formula to traverse
    @arg  iter	Iterated function [(int * int) -> unit] *)
 let rec form_iter f iter = match f with
@@ -92,15 +98,15 @@ let rec form_iter f iter = match f with
 
 (*
 **  The cellname type and associated conversions
-**  (This type is used for parsing and displaying, but not internally.)
+**  This type is used to represent cell coordinates during parsing and
+**  displaying, but not for computations or internal operations.
 *)
 
 (* Cell names manipulated by the parser, eg. ("B", 7) *)
 type cellname = string * int
 
 (* cell_name2coord - convert cell names to integer coordinates
-   [cellname -> int * int]
-   TODO: Support column names with several letters *)
+   [cellname -> int * int] *)
 let cell_name2coord (str, row) =
 	let col = ref 0 in
 	for i = 0 to String.length str - 1 do
@@ -109,11 +115,11 @@ let cell_name2coord (str, row) =
 	(row - 1, !col - 1)
 
 (* cell_coord2name - convert integer coordinates to cell names
-   [int * int -> cellname]
-   TODO: Support column names with several letters *)
+   [int * int -> cellname] *)
 let cell_coord2name (i, j) : cellname =
 	let length = ref 1 and col = ref j and power = ref 26 in
-	(* First decide the length and turn "global j" into "j for this length" *)
+	(* First decide the length, then turn "j-th column" into "j-th column among
+	   those of this exact length" *)
 	while !col >= !power do
 		incr length;
 		col := !col - !power;
@@ -160,7 +166,7 @@ let string_of_oper oper = match oper with
    [('a -> string) -> 'a list -> string] *)
 let rec string_of_list f l = match l with
 	| [x] -> f x
-	| x::xs -> f x ^ ";" ^ string_of_list f xs
+	| x :: xs -> f x ^ "; " ^ string_of_list f xs
 	| _ -> failwith "form_list_toString: the list shouldn't be empty"
 
 (* string_of_form - show formulas as strings [form -> string] *)
@@ -169,10 +175,10 @@ let rec string_of_form = function
 		let (str, row) = cell_coord2name c in
 		str ^ (string_of_int row)
 	| Cst n -> string_of_num n
-	| Op(o,fl) ->
+	| Op(o, fl) ->
 		(string_of_oper o) ^ "(" ^ string_of_list string_of_form fl ^ ")"
-	| Func(s,f1,f2) ->
-		"s" ^ (string_of_int s) ^ "(" ^ (string_of_form f1) ^ ";"
+	| Func(s, f1, f2) ->
+		"s" ^ (string_of_int s) ^ "(" ^ (string_of_form f1) ^ "; "
 		^ (string_of_form f2) ^ ")"
 
 
@@ -180,7 +186,7 @@ let rec string_of_form = function
 
 let ps = print_string
 
-let print_cellname c	= print_string(string_of_cellname c)
+let print_cellname c	= print_string (string_of_cellname c)
 let print_value v		= print_string (string_of_value v)
 let print_num n			= print_string (string_of_num n)
 let print_oper o		= print_string (string_of_oper o)
@@ -188,5 +194,5 @@ let print_form f		= print_string (string_of_form f)
 
 let rec print_list f = function
 	| [x] -> f x
-	| x::xs -> f x; ps ";"; print_list f xs
+	| x::xs -> f x; ps "; "; print_list f xs
 	| _ -> failwith "show_list: the list shouldn't be empty"
